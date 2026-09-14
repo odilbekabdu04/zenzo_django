@@ -12,7 +12,11 @@ SECRET_KEY = os.environ.get(
     'SECRET_KEY',
     'django-insecure-local-dev-key-change-me-in-production-12345'
 )
-
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 # Render'da DEBUG=False, lokalda True
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
@@ -30,21 +34,20 @@ CSRF_TRUSTED_ORIGINS = [
 # INSTALLED APPS
 # ═══════════════════════════════════════════════════════════
 INSTALLED_APPS = [
-    'whitenoise.runserver_nostatic',    # ✅ Render uchun
-
+    'cloudinary_storage',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # 3rd party
+    
+    'cloudinary',
+    
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-
-    # Local
+    
     'rest',
 ]
 
@@ -130,7 +133,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ═══════════════════════════════════════════════════════════
 STORAGES = {
     'default': {
-        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
@@ -191,4 +194,13 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'TOKEN_TYPE_CLAIM': 'token_type',
     'JTI_CLAIM': 'jti',
+}
+
+# ═══════════════════════════════════════════════════════════
+# CLOUDINARY
+# ═══════════════════════════════════════════════════════════
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'wawdozxc'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '979465949363815'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'vUnOegBMbgJjXiirnizgl1Jznjc'),
 }
