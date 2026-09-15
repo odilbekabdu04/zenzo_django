@@ -8,5 +8,4 @@ gunicorn
 psycopg2-binary
 Pillow
 cloudinary
-django-cloudinary-storage
 python-dotenv

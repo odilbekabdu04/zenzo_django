@@ -34,7 +34,7 @@ CSRF_TRUSTED_ORIGINS = [
 # INSTALLED APPS
 # ═══════════════════════════════════════════════════════════
 INSTALLED_APPS = [
-    'cloudinary_storage',
+    
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -133,7 +133,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # ═══════════════════════════════════════════════════════════
 STORAGES = {
     'default': {
-        'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',   # ✅ Vaqtincha
     },
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
@@ -195,11 +195,11 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 }
 
-# ═══════════════════════════════════════════════════════════
-# CLOUDINARY
-# ═══════════════════════════════════════════════════════════
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'wawdozxc'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '979465949363815'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'vUnOegBMbgJjXiirnizgl1Jznjc'),
-}
+# # ═══════════════════════════════════════════════════════════
+# # CLOUDINARY
+# # ═══════════════════════════════════════════════════════════
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'wawdozxc'),
+#     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '979465949363815'),
+#     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'vUnOegBMbgJjXiirnizgl1Jznjc'),
+# }
