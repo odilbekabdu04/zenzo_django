@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from .models import User, rest
 from .serializers import UserSerializer, RegisterSerializer, RestSerializer
-
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 # ============================================
 # AUTH
@@ -242,7 +242,7 @@ def toggle_block_view(request, user_id):
 # ============================================
 # MAHSULOTLAR API
 # ============================================
-from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+
 
 
 class RestListCreateView(generics.ListCreateAPIView):
