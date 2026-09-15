@@ -8,10 +8,11 @@ from .models import User, rest
 from .serializers import UserSerializer, RegisterSerializer, RestSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
+
 # ============================================
 # AUTH
 # ============================================
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def register_view(request):
     serializer = RegisterSerializer(data=request.data)
@@ -19,60 +20,71 @@ def register_view(request):
         serializer.save()
         return Response(
             {"message": "Muvaffaqiyatli ro'yxatdan o'tdingiz!"},
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def login_view(request):
-    email = request.data.get('email', '').lower()
-    password = request.data.get('password', '')
-
-    try:
-        user_obj = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return Response(
-            {"error": "Email yoki parol noto'g'ri!"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    if user_obj.is_blocked:
-        return Response(
-            {"error": "Akkauntingiz bloklangan!"},
-            status=status.HTTP_403_FORBIDDEN
-        )
-
-    user = authenticate(username=user_obj.username, password=password)
-    if user is None:
-        return Response(
-            {"error": "Email yoki parol noto'g'ri!"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    refresh = RefreshToken.for_user(user)
-    role = 'admin' if user.is_superuser else 'customer'
-
-    return Response({
-        'access': str(refresh.access_token),
-        'refresh': str(refresh),
-        'role': role,
-        'user': UserSerializer(user).data
-    })
-
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def admin_login_view(request):
-    """Admin login — username + password"""
-    username = request.data.get('username', '').strip()
-    password = request.data.get('password', '')
+    """Login — username + password orqali"""
+    username = request.data.get("username", "").strip()
+    password = request.data.get("password", "")
 
     if not username or not password:
         return Response(
             {"error": "Username va parolni kiriting!"},
-            status=status.HTTP_400_BAD_REQUEST
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Bloklangan tekshirish
+    try:
+        user_obj = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return Response(
+            {"error": "Username yoki parol noto'g'ri!"},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    if user_obj.is_blocked:
+        return Response(
+            {"error": "Akkauntingiz bloklangan!"}, status=status.HTTP_403_FORBIDDEN
+        )
+
+    # Parolni tekshirish
+    user = authenticate(username=username, password=password)
+    if user is None:
+        return Response(
+            {"error": "Username yoki parol noto'g'ri!"},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    # Token yaratish
+    refresh = RefreshToken.for_user(user)
+    role = "admin" if user.is_superuser else "customer"
+
+    return Response(
+        {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "role": role,
+            "user": UserSerializer(user).data,
+        }
+    )
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def admin_login_view(request):
+    """Admin login — username + password"""
+    username = request.data.get("username", "").strip()
+    password = request.data.get("password", "")
+
+    if not username or not password:
+        return Response(
+            {"error": "Username va parolni kiriting!"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     try:
@@ -80,39 +92,39 @@ def admin_login_view(request):
     except User.DoesNotExist:
         return Response(
             {"error": "Username yoki parol noto'g'ri!"},
-            status=status.HTTP_401_UNAUTHORIZED
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
     if not user_obj.is_superuser:
         return Response(
-            {"error": "Siz admin emassiz!"},
-            status=status.HTTP_403_FORBIDDEN
+            {"error": "Siz admin emassiz!"}, status=status.HTTP_403_FORBIDDEN
         )
 
     if user_obj.is_blocked:
         return Response(
-            {"error": "Akkauntingiz bloklangan!"},
-            status=status.HTTP_403_FORBIDDEN
+            {"error": "Akkauntingiz bloklangan!"}, status=status.HTTP_403_FORBIDDEN
         )
 
     user = authenticate(username=username, password=password)
     if user is None:
         return Response(
             {"error": "Username yoki parol noto'g'ri!"},
-            status=status.HTTP_401_UNAUTHORIZED
+            status=status.HTTP_401_UNAUTHORIZED,
         )
 
     refresh = RefreshToken.for_user(user)
 
-    return Response({
-        'access': str(refresh.access_token),
-        'refresh': str(refresh),
-        'role': 'admin',
-        'user': UserSerializer(user).data
-    })
+    return Response(
+        {
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "role": "admin",
+            "user": UserSerializer(user).data,
+        }
+    )
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def me_view(request):
     return Response(UserSerializer(request.user).data)
@@ -121,74 +133,72 @@ def me_view(request):
 # ============================================
 # STATS
 # ============================================
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([AllowAny])
 def stats_view(request):
-    return Response({
-        'total_users': User.objects.count(),
-        'total_products': rest.objects.count(),
-        'sold_products': 0,
-        'total_revenue': 0,
-    })
+    return Response(
+        {
+            "total_users": User.objects.count(),
+            "total_products": rest.objects.count(),
+            "sold_products": 0,
+            "total_revenue": 0,
+        }
+    )
+
 
 # ============================================
 # USERS CRUD
 # ============================================
-@api_view(['GET', 'POST'])
+@api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def users_view(request):
     """Foydalanuvchilar ro'yxati + yangi qo'shish"""
-    if request.method == 'GET':
-        users = User.objects.all().order_by('-date_joined')
+    if request.method == "GET":
+        users = User.objects.all().order_by("-date_joined")
         return Response(UserSerializer(users, many=True).data)
 
-    elif request.method == 'POST':
+    elif request.method == "POST":
         # ✅ Ma'lumotlarni tayyorlash
         data = request.data.copy()
-        
+
         # Username — agar yo'q bo'lsa email'dan olinadi
-        if not data.get('username'):
-            email = data.get('email', '')
+        if not data.get("username"):
+            email = data.get("email", "")
             if email:
-                data['username'] = email.split('@')[0]
+                data["username"] = email.split("@")[0]
             else:
                 return Response(
-                    {"error": "Email majburiy!"},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"error": "Email majburiy!"}, status=status.HTTP_400_BAD_REQUEST
                 )
-        
+
         # ✅ Email bandligini tekshirish
-        if User.objects.filter(email=data.get('email')).exists():
+        if User.objects.filter(email=data.get("email")).exists():
             return Response(
                 {"error": "Bu email allaqachon band!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # ✅ Username unikalligini tekshirish
-        base_username = data['username']
+        base_username = data["username"]
         counter = 1
-        while User.objects.filter(username=data['username']).exists():
-            data['username'] = f"{base_username}{counter}"
+        while User.objects.filter(username=data["username"]).exists():
+            data["username"] = f"{base_username}{counter}"
             counter += 1
-        
+
         # ✅ Parolni tekshirish
-        if not data.get('password'):
+        if not data.get("password"):
             return Response(
-                {"error": "Parol majburiy!"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Parol majburiy!"}, status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
-            return Response(
-                UserSerializer(user).data,
-                status=status.HTTP_201_CREATED
-            )
+            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(["GET", "PUT", "DELETE"])
 @permission_classes([AllowAny])
 def user_detail_view(request, user_id):
     """Bitta user bilan ishlash"""
@@ -196,43 +206,36 @@ def user_detail_view(request, user_id):
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
         return Response(
-            {"error": "Foydalanuvchi topilmadi"},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Foydalanuvchi topilmadi"}, status=status.HTTP_404_NOT_FOUND
         )
 
-    if request.method == 'GET':
+    if request.method == "GET":
         return Response(UserSerializer(user).data)
 
-    elif request.method == 'PUT':
+    elif request.method == "PUT":
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == 'DELETE':
+    elif request.method == "DELETE":
         if request.user.is_authenticated and user.id == request.user.id:
             return Response(
                 {"error": "O'zingizni o'chira olmaysiz!"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
         user.delete()
-        return Response(
-            {"message": "O'chirildi"},
-            status=status.HTTP_204_NO_CONTENT
-        )
+        return Response({"message": "O'chirildi"}, status=status.HTTP_204_NO_CONTENT)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def toggle_block_view(request, user_id):
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
-        return Response(
-            {"error": "Topilmadi"},
-            status=status.HTTP_404_NOT_FOUND
-        )
+        return Response({"error": "Topilmadi"}, status=status.HTTP_404_NOT_FOUND)
 
     user.is_blocked = not user.is_blocked
     user.save()
@@ -244,19 +247,19 @@ def toggle_block_view(request, user_id):
 # ============================================
 
 
-
 class RestListCreateView(generics.ListCreateAPIView):
     """
     GET  /api/rest/  → barcha mahsulotlar
     POST /api/rest/  → yangi mahsulot qo'shish
     """
-    queryset = rest.objects.all().order_by('-yaratilgan')
+
+    queryset = rest.objects.all().order_by("-yaratilgan")
     serializer_class = RestSerializer
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_serializer_context(self):
-        return {'request': self.request}
+        return {"request": self.request}
 
 
 class RestDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -266,10 +269,11 @@ class RestDetailView(generics.RetrieveUpdateDestroyAPIView):
     PATCH  /api/rest/<id>/  → qismiy yangilash
     DELETE /api/rest/<id>/  → o'chirish
     """
+
     queryset = rest.objects.all()
     serializer_class = RestSerializer
     permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_serializer_context(self):
-        return {'request': self.request}
+        return {"request": self.request}
