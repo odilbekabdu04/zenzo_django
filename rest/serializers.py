@@ -53,44 +53,42 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-# ============================================
-# REGISTER SERIALIZER
-# ============================================
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
     confirm_password = serializers.CharField(write_only=True)
+    username = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ['fullname', 'email', 'password', 'confirm_password']
+        fields = ['username', 'fullname', 'email', 'password', 'confirm_password']
+
+    def validate_username(self, value):
+        """Username bandligini tekshirish"""
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Bu username allaqachon band!")
+        return value
+
+    def validate_email(self, value):
+        """Email bandligini tekshirish"""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Bu email allaqachon band!")
+        return value
 
     def validate(self, data):
         if data['password'] != data['confirm_password']:
             raise serializers.ValidationError({"password": "Parollar mos kelmadi!"})
-        if User.objects.filter(email=data['email']).exists():
-            raise serializers.ValidationError({"email": "Bu email band!"})
         return data
 
     def create(self, validated_data):
         validated_data.pop('confirm_password')
         password = validated_data.pop('password')
-        email = validated_data['email']
-        username = email.split('@')[0]
-
-        base = username
-        counter = 1
-        while User.objects.filter(username=username).exists():
-            username = f"{base}{counter}"
-            counter += 1
 
         return User.objects.create_user(
-            username=username,
             password=password,
             is_staff=False,
             is_superuser=False,
             **validated_data
         )
-
 
 # ============================================
 # MAHSULOT SERIALIZER — TUZATILDI
